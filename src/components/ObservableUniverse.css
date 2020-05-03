@@ -1,0 +1,21 @@
+.ObservableUniverse {
+  background: #393E41;
+  width: 100vw;
+  min-height: 100vh;
+  display:flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  /* align-items: flex-start; */
+  align-content: flex-start;
+}
+
+.ObservableUniverse .log {
+  position: absolute;
+  z-index: 1;
+  background: white;
+  font-size: 20px;
+  margin: 2px solid white;
+  top: 50vw;
+  left: 40vh;
+}

@@ -1,0 +1,52 @@
+.Cell {
+  width: 10px;
+  height: 10px;
+  background: #e2c044;
+
+  margin-left: 2px;
+  margin-bottom: 2px;
+  border-radius: 5px;
+
+  border-right-width: 1px;
+  border-right-color: darkkhaki;
+  border-right-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: darkkhaki;
+  border-bottom-style: solid;
+  border-left-width: 1px;
+  border-left-color: darkkhaki;
+  border-left-style: solid;
+  border-top-width: 1px;
+  border-top-color: darkkhaki;
+  border-top-style: solid;
+
+  box-shadow: 0px 0px 3px teal;
+}
+
+.Cell.dead {
+  background: #1e2019;
+  opacity: 0.2;
+}
+/* .dead {
+  background: #587b7f;
+} */
+/* .dead {
+  background: #d3d0cb;
+} */
+
+.bubble {
+  display: none;
+}
+
+.bubble.show {
+  display: inline-block;
+  /* color: white; */
+  font-size: 15px;
+  position: relative;
+  top: 20px;
+  right: 50px;
+  background: #d3d0cb;
+  padding: 5px;
+  /* margin: 5px; */
+  border: 2px solid #587b7f;
+}
