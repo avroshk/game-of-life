@@ -1,0 +1,10 @@
+.God {
+  width: 200px;
+  height: 100px;
+  position: absolute;
+  z-index: 1;
+  top: 200px;
+  left: 100px;
+  background: #ffff0054;
+  border-radius: 10px;
+}

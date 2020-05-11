@@ -1,31 +1,6 @@
 import Grid from '../utils/grid'
 
-export const _getInitialCellState = ({
-
-}) => {
-  // let maxCols = Math.floor(spaceWidth/cellSize);
-  // let maxRows = Math.floor(spaceHeight/cellSize);
-  // let maxNumCells = Math.max(maxCols*maxRows, numCells);
-  // let cells = new Array(maxNumCells).fill(false);
-  //
-  // let M = maxRows;
-  // let N = maxCols;
-  // const grid = new Grid(
-  //   cells,
-  //   0,
-  //   { M: M, N: N },
-  //   {
-  //     L: () => new Array(N).fill(false),
-  //     R: () => new Array(N).fill(false),
-  //     U: () => new Array(M).fill(false),
-  //     D: () => new Array(M).fill(false),
-  //     LUx: () => false,
-  //     LDx: () => false,
-  //     RUx: () => false,
-  //     RDx: () => false
-  //   }
-  // )
-}
+var grid = null;
 
 export const getInitialCellState = ({
   spaceWidth,
@@ -37,96 +12,102 @@ export const getInitialCellState = ({
   let maxCols = Math.floor(spaceWidth/cellSize);
   let maxRows = Math.floor(spaceHeight/cellSize);
   let maxNumCells = Math.max(maxCols*maxRows, numCells);
-  let data = {};
-  for(let i = 0; i < maxNumCells; i++) {
+  let cells = new Array(maxNumCells).fill(false);
+
+  cells = cells.map((state, i) => {
     let col = (i%maxCols);
     let row = Math.floor(i/maxCols);
-    let index = `${row},${col}`;
-    let st = true;
-    if (random) {
-      st = Math.round(Math.random()) > 0 ? true : false;
-    }
 
-    if (row === 3 || row === 4 || row === 5) {
-      if (col === 4) {
-        st = false;
-      }
-    }
-
-    data[index] = {id: i, row: row, col: col, dead: st};
-  }
-  // let grids = [];
-  // let gridCols = (maxCols/3);
-  // let gridRows = (maxRows/3);
-  // console.log(gridCols, gridRows)
-
-
-  return data;
-}
-
-const nextCellStates = (cellStates) => {
-  let newCellStates = JSON.parse(JSON.stringify(cellStates));
-  for (let cellIndex of Object.keys(cellStates)) {
-    let cell = cellStates[cellIndex];
-    let vicinity = 0;
-    for (let i=cell.row-1; i<cell.row+2; i++) {
-      for (let j=cell.col-1; j<cell.col+2; j++) {
-        let index = `${i},${j}`
-        if ((index !== cellIndex) &&
-          (index in cellStates) &&
-          (!cellStates[index].dead)) {
-            vicinity += 1;
+    if (grid) {
+      if (col <= grid.N && row <= grid.M) {
+        let index = (row*grid.M)+col;
+        if (index < grid.cells.length) {
+          return grid.cells[index];
         }
       }
     }
-    if (cell.dead) {
-      // dead
-      if (vicinity === 3) {
-        // bring to life
-        newCellStates[cellIndex].dead = false;
-      }
-    } else {
-      if (vicinity == 2 || vicinity == 3) {
-        // let it live
-      } else {
-        // kill
-        newCellStates[cellIndex].dead = true;
+
+    if (random) {
+      return Math.round(Math.random()) > 0 ? true : false;
+    }
+    if (row === 33 || row === 34 || row === 35) {
+      if (col === 25) {
+        return true;
       }
     }
-  }
-  return newCellStates;
-}
-
-const updateCellSpaceCoords = (cellStates, spaceLimits) => {
-  const newCellStates = getInitialCellState({
-    spaceWidth: spaceLimits.width,
-    spaceHeight: spaceLimits.height,
-    cellSize: 14,
-    numCells: 1000,
-    random: false
+    // if (col%13 === 0) {
+    //   return true;
+    // }
+    // if (
+    //   (row === 24 && col === 25) ||
+    //   (row === 25 && col === 25) ||
+    //   (row === 25 && col === 26) ||
+    //   (row === 26 && col === 24) ||
+    //   (row === 26 && col === 25)
+    // ) {
+    //   return true;
+    // }
+    return state;
   });
-  for (let cellIndex of Object.keys(newCellStates)) {
-    if (cellIndex in cellStates) {
-        newCellStates[cellIndex].dead = cellStates[cellIndex].dead;
+
+  grid = new Grid(
+    cells,
+    0,
+    { M: maxCols, N: maxRows },
+    {
+      L: () => new Array(maxRows).fill(false),
+      R: () => new Array(maxRows).fill(false),
+      U: () => new Array(maxCols).fill(false),
+      D: () => new Array(maxCols).fill(false),
+      LUx: () => false,
+      LDx: () => false,
+      RUx: () => false,
+      RDx: () => false
     }
-  }
-  return newCellStates;
+  )
+  return {
+    cells: grid.cells,
+    M: grid.M,
+    N: grid.N,
+    generation: grid.generation,
+    lastEditedRow: null,
+    lastEditedCol: null,
+  };
 }
 
-const toggleCellStates = (cellStates, cellIndex) => {
-  let newCellStates = JSON.parse(JSON.stringify(cellStates));
-  if (cellIndex in newCellStates) {
-    newCellStates[cellIndex].dead = !newCellStates[cellIndex].dead;
-  }
-  return newCellStates;
+const toggleCellStates = (row, col) => {
+  let cells = grid.cells;
+  let index = (row*grid.M)+col;
+  cells[index] = !cells[index];
+  return {
+    cells: cells,
+    M: grid.M,
+    N: grid.N,
+    generation: grid.generation,
+    lastEditedRow: row,
+    lastEditedCol: col,
+  };
+
+  // let newCellStates = JSON.parse(JSON.stringify(cellStates));
+  // if (cellIndex in newCellStates) {
+  //   newCellStates[cellIndex].dead = !newCellStates[cellIndex].dead;
+  // }
+  // return newCellStates;
 }
 
 export const cellStatesReducer = (state, action) => {
   switch (action.type) {
-    case 'current': return state;
-    case 'next': return nextCellStates(state);
-    case 'refresh': return updateCellSpaceCoords(state, action.spaceLimits);
-    case 'toggle': return toggleCellStates(state, action.cellIndex)
+    case 'init':
+      return getInitialCellState({
+        spaceWidth: action.spaceLimits.width,
+        spaceHeight: action.spaceLimits.height,
+        cellSize: action.cellSize,
+        numCells: action.numCells,
+        random: action.random
+      });
+    case 'next': return grid.getNextState();
+    // case 'refresh': return updateCellSpaceCoords(action.spaceLimits);
+    case 'toggle': return toggleCellStates(action.row, action.col);
     default: throw new Error('Unexpected action');
   }
 };

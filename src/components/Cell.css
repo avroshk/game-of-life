@@ -23,9 +23,16 @@
   box-shadow: 0px 0px 3px teal;
 }
 
+.Cell:hover {
+  border: 1px wheat solid;
+  transition: none !important;
+  background: #d3d0cb !important;
+}
+
 .Cell.dead {
   background: #1e2019;
   opacity: 0.2;
+  transition: background-color 500ms linear;
 }
 /* .dead {
   background: #587b7f;

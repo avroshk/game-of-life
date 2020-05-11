@@ -75,22 +75,25 @@ class Grid {
         vicinity = (RUx + R[0] + R[1] + U[M-1] + U[M-2] + this.cells[i-1] + this.cells[i+M] + this.cells[i+M-1]);
       } else if (i === (M*N)-1) { // RDx
         vicinity = (RDx + R[N-1] + R[N-2] + D[M-1] + D[M-2] + this.cells[i-1] + this.cells[i-M] + this.cells[i-M-1]);
-      } else if (col == 0) { // L
+      } else if (col === 0) { // L
         vicinity = (L[row-1] + L[row] + L[row+1] + this.cells[i+1] + this.cells[i-M] + this.cells[i-M+1] + this.cells[i+M] + this.cells[i+M+1]);
       } else if (col === M-1) { // R
         vicinity = (R[row-1] + R[row] + R[row+1] + this.cells[i-1] + this.cells[i-M] + this.cells[i-M-1] + this.cells[i+M] + this.cells[i+M-1]);
-      } else if (row == 0) { // U
+      } else if (row === 0) { // U
         vicinity = (U[col-1] + U[col] + U[col+1] + this.cells[i-1] + this.cells[i+1] + this.cells[i+M] + this.cells[i+M-1] + this.cells[i+M+1]);
-      } else if (row == N-1) { // D
+      } else if (row === N-1) { // D
         vicinity = (D[col-1] + D[col] + D[col+1] + this.cells[i-1] + this.cells[i+1] + this.cells[i-M] + this.cells[i-M-1] + this.cells[i-M+1]);
       } else {
         vicinity = (this.cells[i-1] + this.cells[i+1] + this.cells[i-M] + this.cells[i-M-1] + this.cells[i-M+1] + this.cells[i+M] + this.cells[i+M-1] + this.cells[i+M+1]);
       }
       return this.getNextCellState(cell, vicinity);
     });
+    
     return {
       generation: ++this.generation,
-      cells: this.cells
+      cells: this.cells,
+      M: this.M,
+      N: this.N
     };
   }
 }
