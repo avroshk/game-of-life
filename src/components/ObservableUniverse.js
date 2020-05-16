@@ -6,6 +6,7 @@ import useWindowDimensions from '../hooks/windowDimensions'
 import { cellStatesReducer } from '../reducers/cellStates'
 
 const CELL_SIZE = 14;
+const TIME_INTERVAL = 500;
 
 const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
@@ -22,19 +23,26 @@ const ObservableUniverse = () => {
   const intervalRef = useRef();
 
   const triggerTime = () => {
-    return setInterval(() => {
+    if (!intervalRef.current) {
+      dispatch({type: 'start'});
+    }
+    intervalRef.current = setInterval(() => {
       dispatch({type: 'next'});
       setResizing(false);
-    }, 500);
+    }, TIME_INTERVAL);
+  }
+
+  const stopTime = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
   }
 
   const act = () => {
     if (clock) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      stopTime();
     } else {
-      intervalRef.current = triggerTime();
+      triggerTime();
     }
     setClock(!clock);
   }
@@ -59,9 +67,6 @@ const ObservableUniverse = () => {
 
   useEffect(() => {
     // setResizing(true);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
 
     dispatch({
       type: 'init',
@@ -76,10 +81,8 @@ const ObservableUniverse = () => {
       random: false
     });
 
-    act();
-
     return () => {
-      clearInterval(intervalRef.current);
+      stopTime();
     }
   }, [width, height]);
 

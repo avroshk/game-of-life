@@ -1,3 +1,5 @@
+import Tones from './tones';
+
 class Grid {
   constructor(cells, generation, {M, N}, {L, R, U, D, LUx, LDx, RUx, RDx}) {
     // M x N
@@ -13,6 +15,7 @@ class Grid {
     this.LDx = LDx;
     this.RUx = RUx;
     this.RDx = RDx;
+    this.tones = new Tones();
   }
   getLCells() {
     return this.cells.filter((cell, i) => i%this.M === 0);
@@ -88,13 +91,14 @@ class Grid {
       }
       return this.getNextCellState(cell, vicinity);
     });
-    
-    return {
+    let data = {
       generation: ++this.generation,
       cells: this.cells,
       M: this.M,
       N: this.N
-    };
+    }
+    // this.tones.play(data);
+    return data;
   }
 }
 

@@ -105,6 +105,7 @@ export const cellStatesReducer = (state, action) => {
         numCells: action.numCells,
         random: action.random
       });
+    case 'start': grid.tones.init();
     case 'next': return grid.getNextState();
     // case 'refresh': return updateCellSpaceCoords(action.spaceLimits);
     case 'toggle': return toggleCellStates(action.row, action.col);

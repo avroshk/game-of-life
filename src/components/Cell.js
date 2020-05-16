@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Cell.css';
 
 const _Cell = ({dead, toggle}) => {
-  let [bubbleActive, setBubbleActive] = useState(false);
+  // let [bubbleActive, setBubbleActive] = useState(false);
   return <div
     className={"Cell " + (dead ? "dead " : "")}
     onMouseDown={(e) => toggle(true, e)}>
