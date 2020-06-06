@@ -21,3 +21,9 @@
   top: 50vw;
   left: 40vh;
 }
+
+.floating {
+  position: absolute;
+  top: 0;
+  left: 0;
+}

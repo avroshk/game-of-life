@@ -1,6 +1,75 @@
-import Tones from './tones';
+export class Draw {
+  constructor(context) {
+    this.context = context;
+    // TODO: don't hardcode these
+    this.cellSize = 10;
+    this.borderRadius = 5;
+    this.padding = 2;
+  }
 
-class Grid {
+  cell({ x, y, size, borderRadius, padding, fill=false }) {
+    x = x*(this.cellSize+padding*2)+ padding;
+    y = y*(this.cellSize+padding*2)+ padding;
+    // const width = size;
+    // const height = size;
+    //
+    // this.context.beginPath();
+    //
+    // this.context.moveTo(x + borderRadius, y);
+    // this.context.lineTo(x + width - borderRadius, y);
+    // this.context.quadraticCurveTo(x + width, y, x + width, y + borderRadius);
+    // this.context.lineTo(x + width, y + height - borderRadius);
+    // this.context.quadraticCurveTo(x + width, y + height, x + width - borderRadius, y + height);
+    // this.context.lineTo(x + borderRadius, y + height);
+    // this.context.quadraticCurveTo(x, y + height, x, y + height - borderRadius);
+    // this.context.lineTo(x, y + borderRadius);
+    // this.context.quadraticCurveTo(x, y, x + borderRadius, y);
+    // this.context.closePath();
+
+
+    this.context.beginPath();
+    this.context.moveTo(x + borderRadius, y);
+
+    this.context.lineTo(x + size - borderRadius, y);
+    this.context.quadraticCurveTo(x + size, y, x + size, y + borderRadius);
+    this.context.lineTo(x + size, y + size - borderRadius);
+    this.context.quadraticCurveTo(x + size, y + size, x + size - borderRadius, y + size);
+    this.context.lineTo(x + borderRadius, y + size);
+    this.context.quadraticCurveTo(x, y + size, x, y + size - borderRadius);
+    this.context.lineTo(x, y + borderRadius);
+    this.context.quadraticCurveTo(x, y, x + borderRadius, y);
+    this.context.closePath();
+    if (fill) {
+      this.context.fillStyle = '#e2c044';
+      this.context.strokeStyle = '#BDB76B';
+      this.context.stroke();
+      this.context.fill();
+    } else {
+      this.context.fillStyle = '#1e201933';
+      this.context.strokeStyle = '#BDB76B33';
+      this.context.stroke();
+    }
+    this.context.fill();
+  }
+
+  grid({ cells, M, N }) {
+    this.context.clearRect(0, 0, M*(this.cellSize*this.padding*2), M*(this.cellSize*this.padding*2));
+    cells.map((state, i) => {
+      let row = Math.floor(i/M);
+      let col = (i%M);
+      this.cell({
+        x: col,
+        y: row,
+        size: this.cellSize,
+        borderRadius: this.borderRadius,
+        padding: this.padding,
+        fill: state
+      })
+    })
+  }
+}
+
+export class Grid {
   constructor(cells, generation, {M, N}, {L, R, U, D, LUx, LDx, RUx, RDx}) {
     // M x N
     this.M = M;
@@ -15,7 +84,16 @@ class Grid {
     this.LDx = LDx;
     this.RUx = RUx;
     this.RDx = RDx;
-    this.tones = new Tones();
+    this.draw = null;
+  }
+  toggleCell(row, col) {
+    let index = (row*this.M)+col;
+    this.cells[index] = !this.cells[index];
+    this.redraw();
+  }
+  updateContext(context) {
+    console.log('Drawing context is set')
+    this.draw = new Draw(context);
   }
   getLCells() {
     return this.cells.filter((cell, i) => i%this.M === 0);
@@ -54,6 +132,15 @@ class Grid {
       }
     }
     return state;
+  }
+  redraw() {
+    if (this.draw) {
+      this.draw.grid({
+        cells: this.cells,
+        M: this.M,
+        N: this.N
+      })
+    }
   }
   getNextState() {
     let L = this.L();
@@ -97,9 +184,10 @@ class Grid {
       M: this.M,
       N: this.N
     }
-    // this.tones.play(data);
+    this.redraw();
+
     return data;
   }
 }
 
-export default Grid;
+// export default Grid;

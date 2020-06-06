@@ -1,4 +1,4 @@
-import Grid from '../utils/grid'
+import { Grid } from '../utils/grid'
 
 var grid = null;
 
@@ -30,11 +30,11 @@ export const getInitialCellState = ({
     if (random) {
       return Math.round(Math.random()) > 0 ? true : false;
     }
-    if (row === 33 || row === 34 || row === 35) {
-      if (col === 25) {
-        return true;
-      }
-    }
+    // if (row === 33 || row === 34 || row === 35) {
+    //   if (col === 25) {
+    //     return true;
+    //   }
+    // }
     // if (col%13 === 0) {
     //   return true;
     // }
@@ -50,21 +50,42 @@ export const getInitialCellState = ({
     return state;
   });
 
-  grid = new Grid(
-    cells,
-    0,
-    { M: maxCols, N: maxRows },
-    {
-      L: () => new Array(maxRows).fill(false),
-      R: () => new Array(maxRows).fill(false),
-      U: () => new Array(maxCols).fill(false),
-      D: () => new Array(maxCols).fill(false),
-      LUx: () => false,
-      LDx: () => false,
-      RUx: () => false,
-      RDx: () => false
-    }
-  )
+  if (!grid) {
+    grid = new Grid(
+      cells,
+      0,
+      { M: maxCols, N: maxRows },
+      {
+        L: () => new Array(maxRows).fill(false),
+        R: () => new Array(maxRows).fill(false),
+        U: () => new Array(maxCols).fill(false),
+        D: () => new Array(maxCols).fill(false),
+        LUx: () => false,
+        LDx: () => false,
+        RUx: () => false,
+        RDx: () => false
+      }
+    );
+  } else {
+    const tempGrid = new Grid(
+      cells,
+      0,
+      { M: maxCols, N: maxRows },
+      {
+        L: () => new Array(maxRows).fill(false),
+        R: () => new Array(maxRows).fill(false),
+        U: () => new Array(maxCols).fill(false),
+        D: () => new Array(maxCols).fill(false),
+        LUx: () => false,
+        LDx: () => false,
+        RUx: () => false,
+        RDx: () => false
+      }
+    )
+    tempGrid.updateContext(grid.draw.context);
+    grid = tempGrid;
+  }
+
   return {
     cells: grid.cells,
     M: grid.M,
@@ -75,12 +96,25 @@ export const getInitialCellState = ({
   };
 }
 
-const toggleCellStates = (row, col) => {
-  let cells = grid.cells;
-  let index = (row*grid.M)+col;
-  cells[index] = !cells[index];
+const updateContext = (context) => {
+  grid.updateContext(context);
+  grid.getNextState();
   return {
-    cells: cells,
+    cells: grid.cells,
+    M: grid.M,
+    N: grid.N,
+    generation: grid.generation,
+  }
+}
+
+const toggleCellStates = (row, col) => {
+  grid.toggleCell(row, col);
+
+  // let cells = grid.cells;
+  // let index = (row*grid.M)+col;
+  // cells[index] = !cells[index];
+  return {
+    cells: grid.cells,
     M: grid.M,
     N: grid.N,
     generation: grid.generation,
@@ -103,12 +137,12 @@ export const cellStatesReducer = (state, action) => {
         spaceHeight: action.spaceLimits.height,
         cellSize: action.cellSize,
         numCells: action.numCells,
-        random: action.random
+        random: action.random,
       });
-    case 'start': grid.tones.init();
+    // case 'hover': grid.tones.init();
     case 'next': return grid.getNextState();
-    // case 'refresh': return updateCellSpaceCoords(action.spaceLimits);
     case 'toggle': return toggleCellStates(action.row, action.col);
+    case 'updateContext': return updateContext(action.context);
     default: throw new Error('Unexpected action');
   }
 };
