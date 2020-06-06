@@ -7,7 +7,9 @@ export const getInitialCellState = ({
   spaceHeight,
   cellSize,
   numCells,
-  random
+  random,
+  gridContext,
+  cellsContext
 }) => {
   let maxCols = Math.floor(spaceWidth/cellSize);
   let maxRows = Math.floor(spaceHeight/cellSize);
@@ -64,6 +66,10 @@ export const getInitialCellState = ({
         LDx: () => false,
         RUx: () => false,
         RDx: () => false
+      },
+      {
+        gridContext,
+        cellsContext
       }
     );
   } else {
@@ -80,9 +86,13 @@ export const getInitialCellState = ({
         LDx: () => false,
         RUx: () => false,
         RDx: () => false
+      },
+      {
+        drawGrid: grid.drawGrid.context,
+        drawCells: grid.drawCells.context
       }
     )
-    tempGrid.updateContext(grid.draw.context);
+    // tempGrid.updateContext(grid.draw.context);
     grid = tempGrid;
   }
 
@@ -96,16 +106,33 @@ export const getInitialCellState = ({
   };
 }
 
-const updateContext = (context) => {
-  grid.updateContext(context);
-  grid.getNextState();
-  return {
-    cells: grid.cells,
-    M: grid.M,
-    N: grid.N,
-    generation: grid.generation,
-  }
-}
+// const updateGridContext = (context) => {
+//   if (!grid) {
+//     return null;
+//   }
+//   grid.updateGridContext(context);
+//   // grid.getNextState();
+//   return {
+//     cells: grid.cells,
+//     M: grid.M,
+//     N: grid.N,
+//     generation: grid.generation,
+//   }
+// }
+
+// const updateCellsContext = (context) => {
+//   if (!grid) {
+//     return null;
+//   }
+//   grid.updateCellsContext(context);
+//   grid.getNextState();
+//   return {
+//     cells: grid.cells,
+//     M: grid.M,
+//     N: grid.N,
+//     generation: grid.generation,
+//   }
+// }
 
 const toggleCellStates = (row, col) => {
   grid.toggleCell(row, col);
@@ -138,11 +165,14 @@ export const cellStatesReducer = (state, action) => {
         cellSize: action.cellSize,
         numCells: action.numCells,
         random: action.random,
+        gridContext: action.gridContext,
+        cellsContext: action.cellsContext
       });
     // case 'hover': grid.tones.init();
     case 'next': return grid.getNextState();
     case 'toggle': return toggleCellStates(action.row, action.col);
-    case 'updateContext': return updateContext(action.context);
+    // case 'updateGridContext': return updateGridContext(action.context);
+    // case 'updateCellsContext': return updateCellsContext(action.context);
     default: throw new Error('Unexpected action');
   }
 };

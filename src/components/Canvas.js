@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef, useReducer } from 'react';
-import { cellStatesReducer } from '../reducers/cellStates'
 
-export const Canvas = ({ height, width, dpr, isAnimating }) => {
+export const Canvas = ({ className, height, width, dpr, isAnimating, dispatchContext }) => {
   // we use a ref to access the canvas' DOM node
   const canvasRef = useRef(null);
   const actualWidth = width * dpr;
   const actualHeight = height * dpr;
-  const [_, dispatchContext] = useReducer(cellStatesReducer, null);
 
   // the canvas' context is stored once it's created
   const [context, setContext] = useState(null);
@@ -18,14 +16,14 @@ export const Canvas = ({ height, width, dpr, isAnimating }) => {
         canvasContext.scale(dpr, dpr);
         canvasContext.globalCompositeOperation = "soft-light";
         setContext(canvasContext);
-        dispatchContext({type: 'updateContext', context: canvasContext})
+        dispatchContext(canvasContext);
       }
     }
   }, [width, height, dpr]);
 
   return (
     <canvas
-      className="Canvas"
+      className={className}
       ref={canvasRef}
       height={actualHeight}
       width={actualWidth}

@@ -1,76 +1,107 @@
-export class Draw {
-  constructor(context) {
+const drawCell = (c, x, y, size, borderRadius, padding, fill=false) => {
+  x = x*(size+padding*2)+ padding;
+  y = y*(size+padding*2)+ padding;
+
+  c.beginPath();
+  c.moveTo(x + borderRadius, y);
+
+  c.lineTo(x + size - borderRadius, y);
+  c.quadraticCurveTo(x + size, y, x + size, y + borderRadius);
+  c.lineTo(x + size, y + size - borderRadius);
+  c.quadraticCurveTo(x + size, y + size, x + size - borderRadius, y + size);
+  c.lineTo(x + borderRadius, y + size);
+  c.quadraticCurveTo(x, y + size, x, y + size - borderRadius);
+  c.lineTo(x, y + borderRadius);
+  c.quadraticCurveTo(x, y, x + borderRadius, y);
+  c.closePath();
+  if (fill) {
+    c.fillStyle = '#e2c044';
+    c.strokeStyle = '#BDB76B';
+  } else {
+    c.fillStyle = '#1e201933';
+    c.strokeStyle = '#BDB76B33';
+  }
+  c.stroke();
+  c.fill();
+}
+
+export class HighlightCells {
+  constructor({ context, cellSize, borderRadius, padding } ) {
     this.context = context;
-    // TODO: don't hardcode these
-    this.cellSize = 10;
-    this.borderRadius = 5;
-    this.padding = 2;
+
+    this.cellSize = cellSize;
+    this.borderRadius = borderRadius;
+    this.padding = padding;
   }
 
-  cell({ x, y, size, borderRadius, padding, fill=false }) {
-    x = x*(this.cellSize+padding*2)+ padding;
-    y = y*(this.cellSize+padding*2)+ padding;
-    // const width = size;
-    // const height = size;
-    //
-    // this.context.beginPath();
-    //
-    // this.context.moveTo(x + borderRadius, y);
-    // this.context.lineTo(x + width - borderRadius, y);
-    // this.context.quadraticCurveTo(x + width, y, x + width, y + borderRadius);
-    // this.context.lineTo(x + width, y + height - borderRadius);
-    // this.context.quadraticCurveTo(x + width, y + height, x + width - borderRadius, y + height);
-    // this.context.lineTo(x + borderRadius, y + height);
-    // this.context.quadraticCurveTo(x, y + height, x, y + height - borderRadius);
-    // this.context.lineTo(x, y + borderRadius);
-    // this.context.quadraticCurveTo(x, y, x + borderRadius, y);
-    // this.context.closePath();
-
-
-    this.context.beginPath();
-    this.context.moveTo(x + borderRadius, y);
-
-    this.context.lineTo(x + size - borderRadius, y);
-    this.context.quadraticCurveTo(x + size, y, x + size, y + borderRadius);
-    this.context.lineTo(x + size, y + size - borderRadius);
-    this.context.quadraticCurveTo(x + size, y + size, x + size - borderRadius, y + size);
-    this.context.lineTo(x + borderRadius, y + size);
-    this.context.quadraticCurveTo(x, y + size, x, y + size - borderRadius);
-    this.context.lineTo(x, y + borderRadius);
-    this.context.quadraticCurveTo(x, y, x + borderRadius, y);
-    this.context.closePath();
-    if (fill) {
-      this.context.fillStyle = '#e2c044';
-      this.context.strokeStyle = '#BDB76B';
-      this.context.stroke();
-      this.context.fill();
-    } else {
-      this.context.fillStyle = '#1e201933';
-      this.context.strokeStyle = '#BDB76B33';
-      this.context.stroke();
-    }
-    this.context.fill();
-  }
-
-  grid({ cells, M, N }) {
+  draw({cells, M, N}) {
     this.context.clearRect(0, 0, M*(this.cellSize*this.padding*2), M*(this.cellSize*this.padding*2));
     cells.map((state, i) => {
-      let row = Math.floor(i/M);
-      let col = (i%M);
-      this.cell({
-        x: col,
-        y: row,
-        size: this.cellSize,
-        borderRadius: this.borderRadius,
-        padding: this.padding,
-        fill: state
-      })
-    })
+      if (state) {
+        let row = Math.floor(i/M);
+        let col = (i%M);
+        drawCell(this.context, col, row, this.cellSize, this.borderRadius, this.padding, true);
+      }
+    });
+  }
+}
+
+export class DrawCells {
+  constructor({ context, cellSize, borderRadius, padding } ) {
+    this.context = context;
+
+    this.cellSize = cellSize;
+    this.borderRadius = borderRadius;
+    this.padding = padding;
+  }
+
+  draw({cells, M, N}) {
+    this.context.clearRect(0, 0, M*(this.cellSize*this.padding*2), M*(this.cellSize*this.padding*2));
+    cells.map((state, i) => {
+      if (state) {
+        let row = Math.floor(i/M);
+        let col = (i%M);
+        drawCell(this.context, col, row, this.cellSize, this.borderRadius, this.padding, true);
+      }
+    });
+  }
+}
+
+export class DrawGrid {
+  constructor({ context, M, N, cellSize=10, borderRadius=5, padding=2 }) {
+    this.context = context;
+
+    // TODO: don't use defaults in the constructor
+    this.cellSize = cellSize;
+    this.borderRadius = borderRadius;
+    this.padding = padding;
+
+    this.draw(M, N);
+  }
+
+  draw(M, N) {
+    this.context.clearRect(0, 0, M*(this.cellSize*this.padding*2), M*(this.cellSize*this.padding*2));
+    for (let m=0; m<M; ++m) {
+      for (let n=0; n<N; ++n) {
+        drawCell(this.context, m, n, this.cellSize, this.borderRadius, this.padding)
+      }
+    }
   }
 }
 
 export class Grid {
-  constructor(cells, generation, {M, N}, {L, R, U, D, LUx, LDx, RUx, RDx}) {
+  constructor(
+    cells,
+    generation,
+    {M, N},
+    {L, R, U, D, LUx, LDx, RUx, RDx},
+    {gridContext, cellsContext}
+  ) {
+    //TODO: do not hardcode these
+    this.cellSize = 10;
+    this.borderRadius = 5;
+    this.padding = 2;
+
     // M x N
     this.M = M;
     this.N = N;
@@ -84,16 +115,19 @@ export class Grid {
     this.LDx = LDx;
     this.RUx = RUx;
     this.RDx = RDx;
-    this.draw = null;
+
+    this.drawGrid = new DrawGrid({context: gridContext, M: this.M, N: this.N});
+    this.drawCells = new DrawCells({
+      context: cellsContext,
+      cellSize: this.cellSize,
+      borderRadius: this.borderRadius,
+      padding: this.padding
+    });
   }
   toggleCell(row, col) {
     let index = (row*this.M)+col;
     this.cells[index] = !this.cells[index];
     this.redraw();
-  }
-  updateContext(context) {
-    console.log('Drawing context is set')
-    this.draw = new Draw(context);
   }
   getLCells() {
     return this.cells.filter((cell, i) => i%this.M === 0);
@@ -134,8 +168,8 @@ export class Grid {
     return state;
   }
   redraw() {
-    if (this.draw) {
-      this.draw.grid({
+    if (this.drawCells) {
+      this.drawCells.draw({
         cells: this.cells,
         M: this.M,
         N: this.N
@@ -184,6 +218,7 @@ export class Grid {
       M: this.M,
       N: this.N
     }
+
     this.redraw();
 
     return data;

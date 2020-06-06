@@ -27,3 +27,9 @@
   top: 0;
   left: 0;
 }
+
+.ObservableUniverse canvas {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
