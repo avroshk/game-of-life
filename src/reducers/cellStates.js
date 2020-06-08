@@ -52,49 +52,30 @@ export const getInitialCellState = ({
     return state;
   });
 
-  if (!grid) {
-    grid = new Grid(
-      cells,
-      0,
-      { M: maxCols, N: maxRows },
-      {
-        L: () => new Array(maxRows).fill(false),
-        R: () => new Array(maxRows).fill(false),
-        U: () => new Array(maxCols).fill(false),
-        D: () => new Array(maxCols).fill(false),
-        LUx: () => false,
-        LDx: () => false,
-        RUx: () => false,
-        RDx: () => false
-      },
-      {
-        gridContext,
-        cellsContext
-      }
-    );
-  } else {
-    const tempGrid = new Grid(
-      cells,
-      0,
-      { M: maxCols, N: maxRows },
-      {
-        L: () => new Array(maxRows).fill(false),
-        R: () => new Array(maxRows).fill(false),
-        U: () => new Array(maxCols).fill(false),
-        D: () => new Array(maxCols).fill(false),
-        LUx: () => false,
-        LDx: () => false,
-        RUx: () => false,
-        RDx: () => false
-      },
-      {
-        drawGrid: grid.drawGrid.context,
-        drawCells: grid.drawCells.context
-      }
-    )
-    // tempGrid.updateContext(grid.draw.context);
-    grid = tempGrid;
+  if (grid) {
+    gridContext = grid.drawGrid.context;
+    cellsContext = grid.drawCells.context;
   }
+
+  grid = new Grid(
+    cells,
+    0,
+    { M: maxCols, N: maxRows },
+    {
+      L: () => new Array(maxRows).fill(false),
+      R: () => new Array(maxRows).fill(false),
+      U: () => new Array(maxCols).fill(false),
+      D: () => new Array(maxCols).fill(false),
+      LUx: () => false,
+      LDx: () => false,
+      RUx: () => false,
+      RDx: () => false
+    },
+    {
+      gridContext,
+      cellsContext
+    }
+  );
 
   return {
     cells: grid.cells,
