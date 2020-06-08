@@ -1,4 +1,4 @@
-const drawCell = (c, x, y, size, borderRadius, padding, fill=false) => {
+const drawCell = (c, x, y, size, borderRadius, padding, fill=false, highlight=false) => {
   x = x*(size+padding*2)+ padding;
   y = y*(size+padding*2)+ padding;
 
@@ -14,13 +14,19 @@ const drawCell = (c, x, y, size, borderRadius, padding, fill=false) => {
   c.lineTo(x, y + borderRadius);
   c.quadraticCurveTo(x, y, x + borderRadius, y);
   c.closePath();
+
   if (fill) {
     c.fillStyle = '#e2c044';
     c.strokeStyle = '#BDB76B';
+  } else if (highlight) {
+    c.fillStyle = '#1e201933';
+    // c.fillStyle = '#d3d0cb';
+    c.strokeStyle = '#F5DEB333';
   } else {
     c.fillStyle = '#1e201933';
     c.strokeStyle = '#BDB76B33';
   }
+
   c.stroke();
   c.fill();
 }
@@ -40,7 +46,7 @@ export class HighlightCells {
       if (state) {
         let row = Math.floor(i/M);
         let col = (i%M);
-        drawCell(this.context, col, row, this.cellSize, this.borderRadius, this.padding, true);
+        drawCell(this.context, col, row, this.cellSize, this.borderRadius, this.padding, false, true);
       }
     });
   }
@@ -95,7 +101,7 @@ export class Grid {
     generation,
     {M, N},
     {L, R, U, D, LUx, LDx, RUx, RDx},
-    {gridContext, cellsContext}
+    {gridContext, cellsContext, highlightCellsContext}
   ) {
     //TODO: do not hardcode these
     this.cellSize = 10;
@@ -116,13 +122,46 @@ export class Grid {
     this.RUx = RUx;
     this.RDx = RDx;
 
-    this.drawGrid = new DrawGrid({context: gridContext, M: this.M, N: this.N});
-    this.drawCells = new DrawCells({
-      context: cellsContext,
-      cellSize: this.cellSize,
-      borderRadius: this.borderRadius,
-      padding: this.padding
-    });
+    this.drawGrid = null;
+    this.drawCells = null;
+    this.highlightCells = null;
+    this.start = undefined;
+    this.elapsed = 0.0;
+    this.request = null;
+    this.animate = null;
+
+    if (gridContext) {
+      this.drawGrid = new DrawGrid({context: gridContext, M: this.M, N: this.N});
+    }
+    if (cellsContext) {
+      this.drawCells = new DrawCells({
+        context: cellsContext,
+        cellSize: this.cellSize,
+        borderRadius: this.borderRadius,
+        padding: this.padding
+      });
+    }
+    if (highlightCellsContext) {
+      this.highlightCells = new HighlightCells({
+        context: highlightCellsContext,
+        cellSize: this.cellSize,
+        borderRadius: this.borderRadius,
+        padding: this.padding
+      })
+
+      this.animate = (ts) => {
+        if (this.start === undefined) {
+          this.start = ts;
+        }
+        this.elapsed = ts - this.start;
+
+        this.highlightCells.draw({cells: this.cells, M: this.M, N: this.N});
+        this.request = window.requestAnimationFrame(this.animate);
+      }
+
+      this.animate = this.animate.bind(this);
+      window.requestAnimationFrame(this.animate);
+    }
   }
   toggleCell(row, col) {
     let index = (row*this.M)+col;

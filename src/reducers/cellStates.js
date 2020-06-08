@@ -1,6 +1,7 @@
 import { Grid } from '../utils/grid'
 
 var grid = null;
+var hoverGrid = null;
 
 export const getInitialCellState = ({
   spaceWidth,
@@ -9,7 +10,8 @@ export const getInitialCellState = ({
   numCells,
   random,
   gridContext,
-  cellsContext
+  cellsContext,
+  highlightCellsContext
 }) => {
   let maxCols = Math.floor(spaceWidth/cellSize);
   let maxRows = Math.floor(spaceHeight/cellSize);
@@ -77,64 +79,32 @@ export const getInitialCellState = ({
     }
   );
 
+  hoverGrid = new Grid(
+    new Array(maxNumCells).fill(false),
+    0,
+    { M: maxCols, N: maxRows },
+    {
+      L: () => new Array(maxRows).fill(false),
+      R: () => new Array(maxRows).fill(false),
+      U: () => new Array(maxCols).fill(false),
+      D: () => new Array(maxCols).fill(false),
+      LUx: () => false,
+      LDx: () => false,
+      RUx: () => false,
+      RDx: () => false
+    },
+    {
+      highlightCellsContext
+    }
+  );
+
   return {
-    cells: grid.cells,
-    M: grid.M,
-    N: grid.N,
     generation: grid.generation,
     lastEditedRow: null,
     lastEditedCol: null,
+    lastHighlightedRow: null,
+    lastHighlightedCol: null
   };
-}
-
-// const updateGridContext = (context) => {
-//   if (!grid) {
-//     return null;
-//   }
-//   grid.updateGridContext(context);
-//   // grid.getNextState();
-//   return {
-//     cells: grid.cells,
-//     M: grid.M,
-//     N: grid.N,
-//     generation: grid.generation,
-//   }
-// }
-
-// const updateCellsContext = (context) => {
-//   if (!grid) {
-//     return null;
-//   }
-//   grid.updateCellsContext(context);
-//   grid.getNextState();
-//   return {
-//     cells: grid.cells,
-//     M: grid.M,
-//     N: grid.N,
-//     generation: grid.generation,
-//   }
-// }
-
-const toggleCellStates = (row, col) => {
-  grid.toggleCell(row, col);
-
-  // let cells = grid.cells;
-  // let index = (row*grid.M)+col;
-  // cells[index] = !cells[index];
-  return {
-    cells: grid.cells,
-    M: grid.M,
-    N: grid.N,
-    generation: grid.generation,
-    lastEditedRow: row,
-    lastEditedCol: col,
-  };
-
-  // let newCellStates = JSON.parse(JSON.stringify(cellStates));
-  // if (cellIndex in newCellStates) {
-  //   newCellStates[cellIndex].dead = !newCellStates[cellIndex].dead;
-  // }
-  // return newCellStates;
 }
 
 export const cellStatesReducer = (state, action) => {
@@ -147,13 +117,40 @@ export const cellStatesReducer = (state, action) => {
         numCells: action.numCells,
         random: action.random,
         gridContext: action.gridContext,
-        cellsContext: action.cellsContext
+        cellsContext: action.cellsContext,
+        highlightCellsContext: action.highlightCellsContext,
       });
-    // case 'hover': grid.tones.init();
-    case 'next': return grid.getNextState();
-    case 'toggle': return toggleCellStates(action.row, action.col);
-    // case 'updateGridContext': return updateGridContext(action.context);
-    // case 'updateCellsContext': return updateCellsContext(action.context);
+    case 'hover': {
+      let row = action.row;
+      let col = action.col;
+      let index = (row*hoverGrid.M)+col;
+      if (index < hoverGrid.cells.length) {
+        hoverGrid.cells[index] = true;
+        setTimeout(() => {
+          hoverGrid.cells[index] = false;
+        }, 250);
+      }
+      return {
+        ...state,
+        lastHighlightedRow: row,
+        lastHighlightedCol: col,
+      };
+    }
+    case 'next': {
+      grid.getNextState();
+      return {
+        ...state,
+        generation: grid.generation,
+      };
+    }
+    case 'toggle': {
+      grid.toggleCell(action.row, action.col);
+      return {
+        ...state,
+        lastEditedRow: action.row,
+        lastEditedCol: action.col,
+      };
+    }
     default: throw new Error('Unexpected action');
   }
 };

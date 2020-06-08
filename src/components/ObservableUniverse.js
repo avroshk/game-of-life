@@ -47,14 +47,21 @@ const ObservableUniverse = () => {
     }
   }
 
+  const highlightCell = ({ row, col }) => {
+    if (cellStates && (cellStates.lastEditedRow !== row || cellStates.lastEditedCol !== col)) {
+      dispatch({type: 'hover', row, col})
+    }
+  }
+
   useEffect(() => {
     if (mouseDown) {
       toggleCell({row: mouse.row, col: mouse.col})
     }
+    highlightCell({row: mouse.row, col: mouse.col})
   }, [mouse]);
 
   useEffect(() => {
-    if (width && height && gridContext && cellsContext) {
+    if (width && height && gridContext && cellsContext && highlightCellsContext) {
       if (clock){
         stopTime();
       }
@@ -70,7 +77,8 @@ const ObservableUniverse = () => {
         numCells: 81,
         random: true,
         gridContext,
-        cellsContext
+        cellsContext,
+        highlightCellsContext
       });
       triggerTime();
     }
@@ -78,7 +86,7 @@ const ObservableUniverse = () => {
     return () => {
       stopTime();
     }
-  }, [width, height, gridContext, cellsContext]);
+  }, [width, height, gridContext, cellsContext, highlightCellsContext]);
 
   return (
     <div className="ObservableUniverse" ref={ref} onClick={(e) => toggleCell({row: Math.floor(e.clientY/CELL_SIZE),col: Math.floor(e.clientX/CELL_SIZE)})}>
