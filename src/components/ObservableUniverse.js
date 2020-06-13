@@ -6,6 +6,7 @@ import useWindowDimensions from '../hooks/windowDimensions'
 import { cellStatesReducer } from '../reducers/cellStates'
 import { Canvas } from "./Canvas";
 import Hexagon from "./Hexagon";
+import Time from "./Time";
 import useCanvasDimensions from "../hooks/canvasDimensions";
 import useMouseEvents from "../hooks/mouseEvents";
 
@@ -40,13 +41,6 @@ const ObservableUniverse = () => {
     }
   }
 
-  const toggleCell = ({ row, col }) => {
-    if (cellStates.lastEditedRow !== row || cellStates.lastEditedCol !== col) {
-      // console.log(mouseDown)
-      dispatch({type: 'toggle', row, col})
-    }
-  }
-
   const highlightCell = ({ row, col }) => {
     if (cellStates && (cellStates.lastEditedRow !== row || cellStates.lastEditedCol !== col)) {
       dispatch({type: 'hover', row, col})
@@ -55,7 +49,13 @@ const ObservableUniverse = () => {
 
   useEffect(() => {
     if (mouseDown) {
-      toggleCell({row: mouse.row, col: mouse.col})
+      dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown})
+    }
+  }, [mouseDown]);
+
+  useEffect(() => {
+    if (mouseDown && (cellStates.lastEditedRow !== mouse.row || cellStates.lastEditedCol !== mouse.col)) {
+      dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown, fill: true})
     }
     highlightCell({row: mouse.row, col: mouse.col})
   }, [mouse]);
@@ -70,12 +70,10 @@ const ObservableUniverse = () => {
         spaceLimits: {
           width: width,
           height: height
-          // width: dimsRef.current.offsetWidth,
-          // height: dimsRef.current.offsetHeight
         },
         cellSize: CELL_SIZE,
         numCells: 81,
-        random: true,
+        random: false,
         gridContext,
         cellsContext,
         highlightCellsContext
@@ -89,7 +87,7 @@ const ObservableUniverse = () => {
   }, [width, height, gridContext, cellsContext, highlightCellsContext]);
 
   return (
-    <div className="ObservableUniverse" ref={ref} onClick={(e) => toggleCell({row: Math.floor(e.clientY/CELL_SIZE),col: Math.floor(e.clientX/CELL_SIZE)})}>
+    <div className="ObservableUniverse" ref={ref} >
       <God act={() => {
           if (clock) {
             stopTime();
@@ -101,6 +99,9 @@ const ObservableUniverse = () => {
         width === undefined || height === undefined || dpr === undefined ?
           <div>{"🤔"}</div> :
           <div>
+            {
+              cellStates && cellStates.generation ? <Time time={cellStates.generation} /> : null
+            }
             {/*<div className="floating">({mouse.x}, {mouse.y}), ({mouse.row}, {mouse.col})</div>*/}
             <Canvas className="gridLayer" width={width} height={height} dpr={dpr} dispatchContext={setGridContext} />
             <Canvas className="cellsLayer" width={width} height={height} dpr={dpr} dispatchContext={setCellsContext} />

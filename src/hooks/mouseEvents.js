@@ -14,7 +14,7 @@ const useMouseEvents = (cellSize) => {
   useEffect(() => {
     const handleMouseMove = (e) => {
       const col = Math.floor(e.x/cellSize);
-      const row = Math.floor(e.y/cellSize);
+      const row = Math.floor(e.y/cellSize); 
       setMouseCoords({
         x: e.x,
         y: e.y,
