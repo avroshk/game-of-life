@@ -10,7 +10,7 @@ import Time from "./Time";
 import useCanvasDimensions from "../hooks/canvasDimensions";
 import useMouseEvents from "../hooks/mouseEvents";
 
-const CELL_SIZE = 14;
+const CELL_SIZE = 5;
 const TIME_INTERVAL = 500;
 
 const sleep = (milliseconds) => {
@@ -42,7 +42,7 @@ const ObservableUniverse = () => {
   }
 
   const highlightCell = ({ row, col }) => {
-    if (cellStates && (cellStates.lastEditedRow !== row || cellStates.lastEditedCol !== col)) {
+    if (cellStates) {
       dispatch({type: 'hover', row, col})
     }
   }
@@ -54,10 +54,13 @@ const ObservableUniverse = () => {
   }, [mouseDown]);
 
   useEffect(() => {
-    if (mouseDown && (cellStates.lastEditedRow !== mouse.row || cellStates.lastEditedCol !== mouse.col)) {
-      dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown, fill: true})
+    if (mouseDown) {
+      if (cellStates.lastEditedRow !== mouse.row || cellStates.lastEditedCol !== mouse.col) {
+        dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown, fill: true})
+      }
+    } else {
+      highlightCell({row: mouse.row, col: mouse.col})
     }
-    highlightCell({row: mouse.row, col: mouse.col})
   }, [mouse]);
 
   useEffect(() => {

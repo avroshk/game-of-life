@@ -74,7 +74,7 @@ export class DrawCells {
 }
 
 export class DrawGrid {
-  constructor({ context, M, N, cellSize=10, borderRadius=5, padding=2 }) {
+  constructor({ context, M, N, cellSize, borderRadius, padding }) {
     this.context = context;
 
     // TODO: don't use defaults in the constructor
@@ -98,15 +98,16 @@ export class DrawGrid {
 export class Grid {
   constructor(
     cells,
+    {cellSize, borderRadius, padding},
     generation,
     {M, N},
     {L, R, U, D, LUx, LDx, RUx, RDx},
     {gridContext, cellsContext, highlightCellsContext}
   ) {
-    //TODO: do not hardcode these
-    this.cellSize = 10;
-    this.borderRadius = 5;
-    this.padding = 2;
+
+    this.cellSize = cellSize;
+    this.borderRadius = borderRadius;
+    this.padding = padding;
 
     // M x N
     this.M = M;
@@ -131,22 +132,23 @@ export class Grid {
     this.animate = null;
 
     if (gridContext) {
-      this.drawGrid = new DrawGrid({context: gridContext, M: this.M, N: this.N});
+      this.drawGrid = new DrawGrid({
+        context: gridContext,
+        M: this.M,
+        N: this.N,
+        cellSize, borderRadius, padding
+      });
     }
     if (cellsContext) {
       this.drawCells = new DrawCells({
         context: cellsContext,
-        cellSize: this.cellSize,
-        borderRadius: this.borderRadius,
-        padding: this.padding
+        cellSize, borderRadius, padding
       });
     }
     if (highlightCellsContext) {
       this.highlightCells = new HighlightCells({
         context: highlightCellsContext,
-        cellSize: this.cellSize,
-        borderRadius: this.borderRadius,
-        padding: this.padding
+        cellSize, borderRadius, padding
       })
 
       this.animate = (ts) => {
@@ -162,6 +164,16 @@ export class Grid {
       this.animate = this.animate.bind(this);
       window.requestAnimationFrame(this.animate);
     }
+  }
+  turnOnCell(row, col) {
+    let index = (row*this.M)+col;
+    this.cells[index] = true;
+    this.redraw();
+  }
+  turnOffCell(row, col) {
+    let index = (row*this.M)+col;
+    this.cells[index] = false;
+    this.redraw();
   }
   toggleCell(row, col) {
     let index = (row*this.M)+col;

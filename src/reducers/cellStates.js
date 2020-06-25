@@ -15,6 +15,10 @@ export const getInitialCellState = ({
   cellsContext,
   highlightCellsContext
 }) => {
+  let padding = Math.ceil(cellSize*0.2)
+  // cellSize = cellSize - padding*2
+  let borderRadius = Math.ceil(cellSize/2)
+
   let maxCols = Math.floor(spaceWidth/cellSize);
   let maxRows = Math.floor(spaceHeight/cellSize);
   let maxNumCells = Math.max(maxCols*maxRows, numCells);
@@ -63,6 +67,7 @@ export const getInitialCellState = ({
 
   grid = new Grid(
     cells,
+    {cellSize, borderRadius, padding},
     0,
     { M: maxCols, N: maxRows },
     {
@@ -83,6 +88,7 @@ export const getInitialCellState = ({
 
   hoverGrid = new Grid(
     new Array(maxNumCells).fill(false),
+    {cellSize, borderRadius, padding},
     0,
     { M: maxCols, N: maxRows },
     {
@@ -187,6 +193,68 @@ const findPoints = ({x1, y1, x2, y2}) => {
   return points;
 }
 
+// const range = (size, startAt = 0) => [...Array(size-startAt).keys()].map(i => i + startAt)
+const distance = ({x1,y1},{x2,y2}) => Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2))
+const unitVector = ({x1,y1},{x2,y2},d) => ({x: (x2-x1)/d, y: (y2-y1)/d})
+const addVectors = ({x1,y1},{x,y}) => ({x: x1+x, y: y1+y})
+const roundVector = ({x,y}) => ({x: Math.round(x), y: Math.round(y)})
+
+const joinPoints = ({x1,y1},{x2,y2}) => {
+  const d = distance({x1,y1},{x2,y2})
+  const v = unitVector({x1,y1}, {x2,y2}, d)
+  let points = []
+  let x = x1
+  let y = y1
+
+  // points.push({x: x1,y: y1})
+
+  const numPoints = Math.round(d)
+  if (numPoints > 1) {
+    for (let i=1; i<numPoints; ++i) {
+      const point = addVectors({x1: x,y1: y}, v)
+      const roundedLastPoint = roundVector({x,y})
+      const roundedPoint = roundVector(point)
+      if (!((roundedLastPoint.x === roundedPoint.x) && (roundedLastPoint.y === roundedPoint.y))) {
+        points.push(roundedPoint)
+      }
+
+      x = point.x
+      y = point.y
+    }
+  }
+
+  points.push({x: x2,y: y2})
+
+  return points
+}
+
+const highlightCell = (row, col, lastRow, lastCol, fill=false) => {
+  let acc = 0;
+  if (lastCol !== null && lastRow !== null) {
+    // setTimeout(() => {
+    //   hoverGrid.toggleCell(lastRow, lastCol);
+    // }, HOVER_HIGHLIGHT_FADE_AWAY_TIME);
+
+    const points = joinPoints({x1:lastRow, y1:lastCol}, {x2:row, y2: col})
+    if (points.length > 0) {
+      points.map(({x,y}) => {
+        if (fill) {
+          grid.toggleCell(x, y);
+        } else {
+          hoverGrid.turnOnCell(x, y);
+          setTimeout(() => {
+            hoverGrid.turnOffCell(x, y);
+          }, HOVER_HIGHLIGHT_FADE_AWAY_TIME);
+        }
+      })
+    }
+  }
+  // hoverGrid.toggleCell(row, col);
+  // setTimeout(() => {
+  //   hoverGrid.toggleCell(row, col);
+  // }, HOVER_HIGHLIGHT_FADE_AWAY_TIME+acc);
+}
+
 export const cellStatesReducer = (state, action) => {
   switch (action.type) {
     case 'init':
@@ -201,19 +269,11 @@ export const cellStatesReducer = (state, action) => {
         highlightCellsContext: action.highlightCellsContext,
       });
     case 'hover': {
-      let row = action.row;
-      let col = action.col;
-      let index = (row*hoverGrid.M)+col;
-      if (index < hoverGrid.cells.length) {
-        hoverGrid.cells[index] = true;
-        setTimeout(() => {
-          hoverGrid.cells[index] = false;
-        }, HOVER_HIGHLIGHT_FADE_AWAY_TIME);
-      }
+      highlightCell(action.row, action.col, state.lastHighlightedRow, state.lastHighlightedCol);
       return {
         ...state,
-        lastHighlightedRow: row,
-        lastHighlightedCol: col,
+        lastHighlightedRow: action.row,
+        lastHighlightedCol: action.col,
       };
     }
     case 'next': {
@@ -225,21 +285,18 @@ export const cellStatesReducer = (state, action) => {
     }
     case 'toggle': {
       if (action.row >= 0 && action.col >= 0 && action.row < grid.N && action.col < grid.M) {
-        grid.toggleCell(action.row, action.col);
-        if (action.fill) {
-          // console.log('*', `(${action.row},${action.col})`, `(${state.lastEditedRow},${state.lastEditedCol})`)
-          const points = findPoints({x1:action.col, y1:action.row, x2: state.lastEditedCol, y2:state.lastEditedRow})
-          console.log('\t', points);
-
-          points.map(({x, y}) => {
-            grid.toggleCell(y, x);
-          })
+        if (state.lastEditedRow !== null && state.lastEditedCol !== null) {
+          if (action.fill) {
+            highlightCell(action.row, action.col, state.lastEditedRow, state.lastEditedCol, true)
+          }
         }
       }
       return {
         ...state,
         lastEditedRow: action.row,
         lastEditedCol: action.col,
+        lastHighlightedRow: action.row,
+        lastHighlightedCol: action.col,
         lastMouseDown: action.mouseDown
       };
     }

@@ -10,11 +10,12 @@ const defDefaultMouseCoords = () => ({
 const useMouseEvents = (cellSize) => {
   const [mouseCoords, setMouseCoords] = useState(defDefaultMouseCoords());
   const [mouseDown, setMouseDown] = useState(false);
+  const cellSizeWithPadding = cellSize+2*Math.ceil(cellSize*0.2)
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      const col = Math.floor(e.x/cellSize);
-      const row = Math.floor(e.y/cellSize); 
+      const col = Math.floor(e.x/cellSizeWithPadding);
+      const row = Math.floor(e.y/cellSizeWithPadding);
       setMouseCoords({
         x: e.x,
         y: e.y,
