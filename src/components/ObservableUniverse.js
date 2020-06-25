@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useReducer, useRef, createRef } from 'react';
+import React, {
+  useState, useEffect, useReducer,
+  useRef, createRef, useLayoutEffect
+} from 'react';
 import './ObservableUniverse.css'
 import Cells from './Cells'
 import God from './God'
@@ -13,6 +16,17 @@ import useMouseEvents from "../hooks/mouseEvents";
 const CELL_SIZE = 5;
 const TIME_INTERVAL = 500;
 
+const useLockBodyScroll = () => {
+  useLayoutEffect(() => {
+    // Get original body overflow
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    // Prevent scrolling on mount
+    document.body.style.overflow = 'hidden';
+    // Re-enable scrolling when component unmounts
+    return () => document.body.style.overflow = originalStyle;
+  }, []);
+}
+
 const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
@@ -26,6 +40,8 @@ const ObservableUniverse = () => {
   const [gridContext, setGridContext] = useState(null);
   const [cellsContext, setCellsContext] = useState(null);
   const [highlightCellsContext, setHighlightCellsContext] = useState(null);
+
+  useLockBodyScroll()
 
   const triggerTime = () => {
     intervalRef.current = setInterval(() => {
