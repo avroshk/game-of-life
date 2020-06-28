@@ -285,10 +285,10 @@ export const cellStatesReducer = (state, action) => {
     }
     case 'toggle': {
       if (action.row >= 0 && action.col >= 0 && action.row < grid.N && action.col < grid.M) {
-        if (state.lastEditedRow !== null && state.lastEditedCol !== null) {
-          if (action.fill) {
-            highlightCell(action.row, action.col, state.lastEditedRow, state.lastEditedCol, true)
-          }
+        if ((state.lastEditedRow !== null && state.lastEditedCol !== null) && action.fill) {
+          highlightCell(action.row, action.col, state.lastEditedRow, state.lastEditedCol, true)
+        } else {
+          grid.toggleCell(action.row, action.col);
         }
       }
       return {
