@@ -13,7 +13,7 @@ import Time from "./Time";
 import useCanvasDimensions from "../hooks/canvasDimensions";
 import useMouseEvents from "../hooks/mouseEvents";
 
-const CELL_SIZE = 5;
+const CELL_SIZE = 10;
 const TIME_INTERVAL = 500;
 
 const useLockBodyScroll = () => {
