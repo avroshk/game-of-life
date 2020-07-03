@@ -1,12 +1,14 @@
 {
   "name": "game-of-life",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "homepage": "https://avroshk.com/game-of-life",
   "dependencies": {
     "lodash": "^4.17.15",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-draggable": "^4.4.3",
+    "react-icons": "^3.10.0",
     "react-scripts": "0.9.x",
     "tone": "^13.8.25",
     "upgrade": "^1.1.0"
