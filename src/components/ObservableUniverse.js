@@ -14,7 +14,7 @@ import useCanvasDimensions from "../hooks/canvasDimensions";
 import useMouseEvents from "../hooks/mouseEvents";
 
 const CELL_SIZE = 10;
-const TIME_INTERVAL = 250;
+const TIME_INTERVAL = 500;
 
 const useLockBodyScroll = () => {
   useLayoutEffect(() => {
@@ -82,6 +82,9 @@ const ObservableUniverse = () => {
       } else {
         highlightCell({row: mouse.row, col: mouse.col})
       }
+    } else {
+      // if God was acting forget the last hover position
+      dispatch({type: 'hoverClear'})
     }
   }, [mouse]);
 

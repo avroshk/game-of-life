@@ -22,8 +22,8 @@ export const getInitialCellState = ({
   // cellSize = cellSize - padding*2
   let borderRadius = Math.ceil(cellSize/2)
 
-  let maxCols = Math.floor(spaceWidth/cellSize);
-  let maxRows = Math.floor(spaceHeight/cellSize);
+  let maxCols = Math.floor(spaceWidth/(cellSize+2*padding));
+  let maxRows = Math.floor(spaceHeight/(cellSize+2*padding));
   let maxNumCells = Math.max(maxCols*maxRows, numCells);
   let cells = new Array(maxNumCells).fill(false);
 
@@ -283,6 +283,12 @@ export const cellStatesReducer = (state, action) => {
         highlightCellsContext: action.highlightCellsContext,
         timeInterval: action.timeInterval,
       });
+    case 'hoverClear':
+      return {
+        ...state,
+        lastHighlightedRow: null,
+        lastHighlightedCol: null,
+      };
     case 'hover': {
       highlightCell(action.row, action.col, state.lastHighlightedRow, state.lastHighlightedCol);
       return {
