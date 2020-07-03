@@ -1,7 +1,9 @@
 import { Grid } from '../utils/grid'
+import { Tones } from '../utils/tones'
 
 var grid = null;
 var hoverGrid = null;
+const tones = null;
 
 const HOVER_HIGHLIGHT_FADE_AWAY_TIME = 250;
 
@@ -13,7 +15,8 @@ export const getInitialCellState = ({
   random,
   gridContext,
   cellsContext,
-  highlightCellsContext
+  highlightCellsContext,
+  timeInterval
 }) => {
   let padding = Math.ceil(cellSize*0.2)
   // cellSize = cellSize - padding*2
@@ -37,10 +40,19 @@ export const getInitialCellState = ({
       }
     }
 
-    if (random) {
-      return Math.round(Math.random()) > 0 ? true : false;
+    // glider
+    if (
+      (row === 1 && col === 1) ||
+      (row === 2 && (col >= 2 && col <= 3)) ||
+      (row === 3 && (col >= 1 && col <= 2))
+    ) {
+      return true;
     }
-    // if (row === 33 || row === 34 || row === 35) {
+
+    // if (random) {
+    //   return Math.round(Math.random()) > 0 ? true : false;
+    // }
+    // if (row === 12 || row === 13 || row === 14) {
     //   if (col === 25) {
     //     return true;
     //   }
@@ -64,6 +76,8 @@ export const getInitialCellState = ({
     gridContext = grid.drawGrid.context;
     cellsContext = grid.drawCells.context;
   }
+
+  tones = new Tones(timeInterval/1000);
 
   grid = new Grid(
     cells,
@@ -267,6 +281,7 @@ export const cellStatesReducer = (state, action) => {
         gridContext: action.gridContext,
         cellsContext: action.cellsContext,
         highlightCellsContext: action.highlightCellsContext,
+        timeInterval: action.timeInterval,
       });
     case 'hover': {
       highlightCell(action.row, action.col, state.lastHighlightedRow, state.lastHighlightedCol);
@@ -276,8 +291,14 @@ export const cellStatesReducer = (state, action) => {
         lastHighlightedCol: action.col,
       };
     }
+    case 'mute':
+      tones.setActive(action.mute)
+      return {
+        ...state
+      };
     case 'next': {
       grid.getNextState();
+      tones.playGridNotes(grid);
       return {
         ...state,
         generation: grid.generation,

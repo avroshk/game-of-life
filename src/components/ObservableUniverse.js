@@ -14,7 +14,7 @@ import useCanvasDimensions from "../hooks/canvasDimensions";
 import useMouseEvents from "../hooks/mouseEvents";
 
 const CELL_SIZE = 10;
-const TIME_INTERVAL = 500;
+const TIME_INTERVAL = 250;
 
 const useLockBodyScroll = () => {
   useLayoutEffect(() => {
@@ -40,6 +40,8 @@ const ObservableUniverse = () => {
   const [gridContext, setGridContext] = useState(null);
   const [cellsContext, setCellsContext] = useState(null);
   const [highlightCellsContext, setHighlightCellsContext] = useState(null);
+  const [actInProgress, setActInProgress] = useState(false);
+  const [musicOn, setMusicOn] = useState(false);
 
   useLockBodyScroll()
 
@@ -64,18 +66,22 @@ const ObservableUniverse = () => {
   }
 
   useEffect(() => {
-    if (mouseDown) {
-      dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown})
+    if (!actInProgress) {
+      if (mouseDown) {
+        dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown})
+      }
     }
   }, [mouseDown]);
 
   useEffect(() => {
-    if (mouseDown) {
-      if (cellStates.lastEditedRow !== mouse.row || cellStates.lastEditedCol !== mouse.col) {
-        dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown, fill: true})
+    if (!actInProgress) {
+      if (mouseDown) {
+        if (cellStates.lastEditedRow !== mouse.row || cellStates.lastEditedCol !== mouse.col) {
+          dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown, fill: true})
+        }
+      } else {
+        highlightCell({row: mouse.row, col: mouse.col})
       }
-    } else {
-      highlightCell({row: mouse.row, col: mouse.col})
     }
   }, [mouse]);
 
@@ -92,12 +98,14 @@ const ObservableUniverse = () => {
         },
         cellSize: CELL_SIZE,
         numCells: 81,
-        random: false,
+        random: true,
         gridContext,
         cellsContext,
-        highlightCellsContext
+        highlightCellsContext,
+        timeInterval: TIME_INTERVAL,
       });
-      triggerTime();
+      dispatch({type: 'next'})
+      // triggerTime();
     }
 
     return () => {
@@ -107,7 +115,21 @@ const ObservableUniverse = () => {
 
   return (
     <div className="ObservableUniverse" ref={ref} >
-      <God act={() => {
+      <God
+        clock={clock}
+        music={musicOn}
+        toggleMusic={() => {
+          if (musicOn) {
+            setMusicOn(false)
+            dispatch({type: 'mute', mute: false});
+          } else {
+            setMusicOn(true)
+            dispatch({type: 'mute', mute: true});
+          }
+        }}
+        setActInProgress={setActInProgress}
+        actInProgress={actInProgress}
+        act={() => {
           if (clock) {
             stopTime();
           } else {
