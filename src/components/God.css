@@ -1,6 +1,6 @@
 .God {
-  /* display: none; */
-  width: 25px;
+  display: flex;
+  width: 75px;
   height: 25px;
   position: absolute;
   z-index: 1;
@@ -8,4 +8,30 @@
   bottom: 10px;
   background: #ff0a;
   border-radius: 5px;
+  cursor: grab;
+}
+
+.God.acting {
+  cursor: grabbing;
+}
+
+.God.handle {
+
+}
+
+.God .time-switch.stopped,
+.God .music-switch.stopped {
+  opacity: 0.5;
+}
+
+.God .time-switch {
+  font-size: 25px;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.God .music-switch {
+  cursor: pointer;
+  font-size: 25px;
+  transform: scale(0.8);
 }
