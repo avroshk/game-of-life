@@ -165,6 +165,10 @@ export class Grid {
       window.requestAnimationFrame(this.animate);
     }
   }
+  clear() {
+    this.cells = this.cells.map(() => false)
+    this.redraw();
+  }
   turnOnCell(row, col) {
     let index = (row*this.M)+col;
     this.cells[index] = true;
