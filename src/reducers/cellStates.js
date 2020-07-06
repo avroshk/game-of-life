@@ -16,7 +16,8 @@ export const getInitialCellState = ({
   gridContext,
   cellsContext,
   highlightCellsContext,
-  timeInterval
+  timeInterval,
+  force
 }) => {
   let padding = Math.ceil(cellSize*0.2)
   // cellSize = cellSize - padding*2
@@ -27,12 +28,16 @@ export const getInitialCellState = ({
   let maxNumCells = Math.max(maxCols*maxRows, numCells);
   let cells = new Array(maxNumCells).fill(false);
 
+  if (force && grid) {
+    grid.clear()
+  }
+
   cells = cells.map((state, i) => {
     let col = (i%maxCols);
     let row = Math.floor(i/maxCols);
 
-    if (grid) {
-      if (col <= grid.N && row <= grid.M) {
+    if (grid && !force) {
+      if (col <= grid.M && row <= grid.N) {
         let index = (row*grid.M)+col;
         if (index < grid.cells.length) {
           return grid.cells[index];
@@ -40,13 +45,17 @@ export const getInitialCellState = ({
       }
     }
 
-    // glider
-    if (
-      (row === 1 && col === 1) ||
-      (row === 2 && (col >= 2 && col <= 3)) ||
-      (row === 3 && (col >= 1 && col <= 2))
-    ) {
-      return true;
+    if (random) {
+      return Math.round(Math.random()) > 0;
+    } else {
+      // glider
+      if (
+        (row === 1 && col === 1) ||
+        (row === 2 && (col >= 2 && col <= 3)) ||
+        (row === 3 && (col >= 1 && col <= 2))
+      ) {
+        return true;
+      }
     }
 
     // if (random) {
@@ -242,13 +251,19 @@ const joinPoints = ({x1,y1},{x2,y2}) => {
   return points
 }
 
-const highlightCell = (row, col, lastRow, lastCol, fill=false) => {
-  let acc = 0;
+const fillCells = (row, col, lastRow, lastCol) => {
   if (lastCol !== null && lastRow !== null) {
-    // setTimeout(() => {
-    //   hoverGrid.toggleCell(lastRow, lastCol);
-    // }, HOVER_HIGHLIGHT_FADE_AWAY_TIME);
+    const points = joinPoints({x1:lastRow, y1:lastCol}, {x2:row, y2: col})
+    if (points.length > 0) {
+      points.map(({x,y}) => {
+        grid.toggleCell(x, y);
+      })
+    }
+  }
+}
 
+const highlightCell = (row, col, lastRow, lastCol, fill=false) => {
+  if (lastCol !== null && lastRow !== null) {
     const points = joinPoints({x1:lastRow, y1:lastCol}, {x2:row, y2: col})
     if (points.length > 0) {
       points.map(({x,y}) => {
@@ -263,10 +278,6 @@ const highlightCell = (row, col, lastRow, lastCol, fill=false) => {
       })
     }
   }
-  // hoverGrid.toggleCell(row, col);
-  // setTimeout(() => {
-  //   hoverGrid.toggleCell(row, col);
-  // }, HOVER_HIGHLIGHT_FADE_AWAY_TIME+acc);
 }
 
 export const cellStatesReducer = (state, action) => {
@@ -282,6 +293,7 @@ export const cellStatesReducer = (state, action) => {
         cellsContext: action.cellsContext,
         highlightCellsContext: action.highlightCellsContext,
         timeInterval: action.timeInterval,
+        force: action.force,
       });
     case 'hoverClear':
       return {
@@ -289,14 +301,14 @@ export const cellStatesReducer = (state, action) => {
         lastHighlightedRow: null,
         lastHighlightedCol: null,
       };
-    case 'hover': {
-      highlightCell(action.row, action.col, state.lastHighlightedRow, state.lastHighlightedCol);
+    case 'resetLastEdit':
       return {
         ...state,
-        lastHighlightedRow: action.row,
-        lastHighlightedCol: action.col,
+        lastEditedRow: null,
+        lastEditedCol: null,
+        lastHighlightedRow: null,
+        lastHighlightedCol: null,
       };
-    }
     case 'mute':
       tones.setActive(action.mute)
       return {
@@ -310,21 +322,39 @@ export const cellStatesReducer = (state, action) => {
         generation: grid.generation,
       };
     }
-    case 'toggle': {
+    case 'hover': {
+      highlightCell(action.row, action.col, state.lastHighlightedRow, state.lastHighlightedCol);
+      return {
+        ...state,
+        lastHighlightedRow: action.row,
+        lastHighlightedCol: action.col,
+      };
+    }
+    case 'fill': {
+      // console.log('fill->lastEdited', state.lastEditedRow, state.lastEditedCol)
       if (action.row >= 0 && action.col >= 0 && action.row < grid.N && action.col < grid.M) {
-        if ((state.lastEditedRow !== null && state.lastEditedCol !== null) && action.fill) {
-          highlightCell(action.row, action.col, state.lastEditedRow, state.lastEditedCol, true)
-        } else {
-          grid.toggleCell(action.row, action.col);
-        }
+        fillCells(action.row, action.col, state.lastEditedRow, state.lastEditedCol)
       }
       return {
         ...state,
         lastEditedRow: action.row,
         lastEditedCol: action.col,
         lastHighlightedRow: action.row,
-        lastHighlightedCol: action.col,
-        lastMouseDown: action.mouseDown
+        lastHighlightedCol: action.col
+      };
+    }
+    case 'toggle': {
+      if (action.row >= 0 && action.col >= 0 && action.row < grid.N && action.col < grid.M) {
+        grid.toggleCell(action.row, action.col);
+      }
+      // console.log('toggle->lastEdited', state.lastEditedRow, state.lastEditedCol)
+      // console.log('toggle', action.row, action.col)
+      return {
+        ...state,
+        lastEditedRow: action.row,
+        lastEditedCol: action.col,
+        lastHighlightedRow: action.row,
+        lastHighlightedCol: action.col
       };
     }
     default: throw new Error('Unexpected action');

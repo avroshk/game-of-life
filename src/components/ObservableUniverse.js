@@ -12,6 +12,7 @@ import Hexagon from "./Hexagon";
 import Time from "./Time";
 import useCanvasDimensions from "../hooks/canvasDimensions";
 import useMouseEvents from "../hooks/mouseEvents";
+import useTouchEvents from "../hooks/touchEvents";
 
 const CELL_SIZE = 10;
 const TIME_INTERVAL = 500;
@@ -37,6 +38,7 @@ const ObservableUniverse = () => {
   const intervalRef = useRef();
   const [clock, setClock] = useState(false);
   const [mouse, mouseDown] = useMouseEvents(CELL_SIZE);
+  const [touch, touchActive] = useTouchEvents(CELL_SIZE);
   const [gridContext, setGridContext] = useState(null);
   const [cellsContext, setCellsContext] = useState(null);
   const [highlightCellsContext, setHighlightCellsContext] = useState(null);
@@ -65,52 +67,71 @@ const ObservableUniverse = () => {
     }
   }
 
+  const beginningOfTime = (force=false, random=false) => {
+    if (clock){
+      stopTime();
+    }
+    dispatch({
+      type: 'init',
+      spaceLimits: {
+        width: width,
+        height: height
+      },
+      cellSize: CELL_SIZE,
+      numCells: 81,
+      random: random,
+      gridContext,
+      cellsContext,
+      highlightCellsContext,
+      timeInterval: TIME_INTERVAL,
+      force: force
+    });
+  }
+
+  // handle mouse click
   useEffect(() => {
     if (!actInProgress) {
       if (mouseDown) {
-        dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown})
+        // console.log('🦠')
+        dispatch({type: 'toggle', row: mouse.row, col: mouse.col})
       }
     }
   }, [mouseDown]);
 
+  // handle touch
   useEffect(() => {
-    if (!actInProgress) {
-      if (mouseDown) {
-        if (cellStates.lastEditedRow !== mouse.row || cellStates.lastEditedCol !== mouse.col) {
-          dispatch({type: 'toggle', row: mouse.row, col: mouse.col, mouseDown, fill: true})
+    if (!actInProgress && touchActive) {
+      if (touch.move) {
+        if (cellStates.lastEditedRow !== touch.row || cellStates.lastEditedCol !== touch.col) {
+          // console.log('💉')
+          dispatch({type: 'fill', row: touch.row, col: touch.col})
         }
       } else {
-        highlightCell({row: mouse.row, col: mouse.col})
+        // console.log('💚')
+        dispatch({type: 'toggle', row: touch.row, col: touch.col})
       }
-    } else {
-      // if God was acting forget the last hover position
-      dispatch({type: 'hoverClear'})
     }
-  }, [mouse]);
+  }, [touch])
+
+  // handle mouse movement
+  useEffect(() => {
+    if (!actInProgress) {
+      if (!mouseDown) {
+        highlightCell({row: mouse.row, col: mouse.col})
+      } else {
+        if (cellStates.lastEditedRow !== mouse.row || cellStates.lastEditedCol !== mouse.col) {
+          dispatch({type: 'fill', row: mouse.row, col: mouse.col})
+        }
+      }
+    }
+  }, [mouse])
 
   useEffect(() => {
     if (width && height && gridContext && cellsContext && highlightCellsContext) {
-      if (clock){
-        stopTime();
-      }
-      dispatch({
-        type: 'init',
-        spaceLimits: {
-          width: width,
-          height: height
-        },
-        cellSize: CELL_SIZE,
-        numCells: 81,
-        random: true,
-        gridContext,
-        cellsContext,
-        highlightCellsContext,
-        timeInterval: TIME_INTERVAL,
-      });
-      dispatch({type: 'next'})
-      // triggerTime();
+      beginningOfTime()
+      triggerTime();
+      // dispatch({type: 'next'})
     }
-
     return () => {
       stopTime();
     }
@@ -130,6 +151,19 @@ const ObservableUniverse = () => {
             dispatch({type: 'mute', mute: true});
           }
         }}
+        restart={(random) => {
+          let retrigger = false
+          if (clock) {
+            retrigger = true
+          }
+          beginningOfTime(true, random)
+          if (random) {
+            dispatch({type: 'next'});
+          }
+          if (retrigger) {
+            triggerTime()
+          }
+        }}
         setActInProgress={setActInProgress}
         actInProgress={actInProgress}
         act={() => {
@@ -144,7 +178,7 @@ const ObservableUniverse = () => {
           <div>{"🤔"}</div> :
           <div>
             {
-              cellStates && cellStates.generation ? <Time time={cellStates.generation} /> : null
+              cellStates && cellStates.generation ? <Time time={cellStates.generation} /> : <Time time={'0'} />
             }
             {/*<div className="floating">({mouse.x}, {mouse.y}), ({mouse.row}, {mouse.col})</div>*/}
             <Canvas className="gridLayer" width={width} height={height} dpr={dpr} dispatchContext={setGridContext} />
