@@ -1,37 +1,62 @@
 .God {
   display: flex;
-  width: 75px;
+  /* width: 75px; */
   height: 25px;
   position: absolute;
   z-index: 1;
   right: 10px;
-  bottom: 10px;
+  top: 10px;
   background: #ff0a;
   border-radius: 5px;
-  cursor: grab;
+  /* cursor: grab; */
 }
 
-.God.acting {
+/* .God.acting {
   cursor: grabbing;
-}
+} */
 
 .God.handle {
 
 }
 
-.God .time-switch.stopped,
-.God .music-switch.stopped {
+.God [class*='-switch'].stopped {
   opacity: 0.5;
 }
 
-.God .time-switch {
+/* .God .time-switch {
   font-size: 25px;
   margin-left: auto;
   cursor: pointer;
+} */
+
+.God div[class*='-container'] {
+  width: 25px;
 }
 
-.God .music-switch {
-  cursor: pointer;
+.God div[class*='-container'] [class*='-switch'] {
   font-size: 25px;
+  cursor: pointer;
+}
+
+.God div[class*='-container'] .smaller {
   transform: scale(0.8);
 }
+
+.God div[class*='-container'] .grab-cursor {
+  cursor: grab;
+}
+
+.God.acting div[class*='-container'] .grab-cursor {
+  cursor: grabbing;
+}
+
+.God .handle-container {
+  border-right: 1px solid gray;
+}
+
+/* .God .switch-container .music-switch,
+.God .switch-container .refresh {
+  font-size: 25px;
+  transform: scale(0.8);
+  cursor: pointer;
+} */
