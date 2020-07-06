@@ -1,47 +1,60 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import useEventListener from './eventListener';
 
-const defDefaultMouseCoords = () => ({
+const defDefaultMouseState = () => ({
   x: undefined,
   y: undefined,
   row: undefined,
-  col: undefined
+  col: undefined,
 });
 
+const getRowFromYPosition = (y, size) => Math.floor(y/size);
+const getColFromXPosition = (x, size) => Math.floor(x/size);
+
 const useMouseEvents = (cellSize) => {
-  const [mouseCoords, setMouseCoords] = useState(defDefaultMouseCoords());
+  // State for storing mouse coordinates
+  const [mouse, setMouseState] = useState(defDefaultMouseState());
+  const [cellSizeWithPadding, setCellSizeWithPadding] = useState(null);
   const [mouseDown, setMouseDown] = useState(false);
-  const cellSizeWithPadding = cellSize+2*Math.ceil(cellSize*0.2)
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      const col = Math.floor(e.x/cellSizeWithPadding);
-      const row = Math.floor(e.y/cellSizeWithPadding);
-      setMouseCoords({
-        x: e.x,
-        y: e.y,
-        row,
-        col
+    setCellSizeWithPadding(cellSize+2*Math.ceil(cellSize*0.2));
+  }, [cellSize])
+
+  // Event handler utilizing useCallback ...
+  // ... so that reference never changes.
+  const mouseMoveHandler = useCallback(({ clientX, clientY }) => {
+      // Update mouse state
+      setMouseState({
+        x: clientX,
+        y: clientY,
+        row: getRowFromYPosition(clientY, cellSizeWithPadding),
+        col: getColFromXPosition(clientX, cellSizeWithPadding)
       });
-    }
+    },
+    [setMouseState, cellSizeWithPadding]
+  );
 
-    const handleMouseDown = (e) => {
+  const mouseDownHandler = useCallback(() => {
+      // Update mouse state
       setMouseDown(true);
-    }
-    const handleMouseUp = (e) => {
+    },
+    [setMouseDown]
+  );
+
+  const mouseUpHandler = useCallback(() => {
+      // Update mouse state
       setMouseDown(false);
-    }
+    },
+    [setMouseDown]
+  );
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
-  }, []);
+  // Add event listener using event listener hook
+  useEventListener('mousemove', mouseMoveHandler);
+  useEventListener('mousedown', mouseDownHandler);
+  useEventListener('mouseup', mouseUpHandler);
 
-  return [mouseCoords, mouseDown];
+  return [mouse, mouseDown];
 }
 
 export default useMouseEvents;
